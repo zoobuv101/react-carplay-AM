@@ -46,7 +46,7 @@ if ! command -v npm >/dev/null 2>&1; then
   sudo apt-get install -y nodejs build-essential libgtk-3-dev
 fi
 # 1) Enter your cloned React-CarPlay directory
-cd "/home/$USER/react-carplay-350Z"
+cd "/home/$USER/react-carplay-AM"
 
 # 2) Install Node deps (including native modules)
 npm install
