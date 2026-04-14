@@ -233,7 +233,7 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: 'transparent',
+          backgroundColor: '#000000',
           zIndex: 10,           // make sure it sits above the canvas
         }}
       >
