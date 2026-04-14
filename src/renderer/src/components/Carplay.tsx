@@ -222,7 +222,7 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
     ref={mainElem}
   >
     {/* an logo splash when no device yet */}
-    {(deviceFound === false || isLoading) && pathname === '/' && (
+    {(!isPlugged || isLoading) && pathname === '/' && (
       <div
         style={{
           position: 'absolute',
