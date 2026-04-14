@@ -94,7 +94,8 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: config!.width,
     height: config!.height,
-    kiosk: config!.kiosk,
+    kiosk: true,
+    fullscreen: true,
     backgroundColor: '#000000',
     show: false,
     frame: false,
@@ -145,6 +146,9 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    // Hand off from Plymouth -> Electron seamlessly; image stays on the
+    // framebuffer under Electron's window until Electron paints.
+    try { require('child_process').exec('plymouth quit --retain-splash') } catch (e) {}
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

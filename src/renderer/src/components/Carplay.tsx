@@ -92,6 +92,18 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
     return worker
   }, [])
 
+
+  // Keep logo on screen briefly after 'plugged' so we don't show a black gap
+  // while the first video frame is still being decoded.
+  const [videoReady, setVideoReady] = React.useState(false)
+  React.useEffect(() => {
+    if (isPlugged) {
+      const t = setTimeout(() => setVideoReady(true), 12000)
+      return () => clearTimeout(t)
+    }
+    setVideoReady(false)
+  }, [isPlugged])
+
   const { processAudio, getAudioPlayer, startRecording, stopRecording } =
     useCarplayAudio(carplayWorker, micChannel.port2)
 
@@ -222,7 +234,7 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
     ref={mainElem}
   >
     {/* an logo splash when no device yet */}
-    {(!isPlugged || isLoading) && pathname === '/' && (
+    {pathname === '/' && (
       <div
         style={{
           position: 'absolute',
@@ -234,15 +246,20 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: '#000000',
-          zIndex: 10,           // make sure it sits above the canvas
+          zIndex: 10,
+          opacity: videoReady ? 0 : 1,
+          transition: 'opacity 500ms ease',
+          pointerEvents: videoReady ? 'none' : 'auto',
         }}
       >
         <img
           src={AMLogo}
           alt="AM Logo"
           style={{
-            maxWidth: '100%',
-            maxHeight: '100%',
+            width: '60vw',
+            height: 'auto',
+            maxHeight: '70vh',
+            objectFit: 'contain',
           }}
         />
       </div>
