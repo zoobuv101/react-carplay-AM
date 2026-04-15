@@ -13,7 +13,21 @@ export type ExtraConfig = DongleConfig & {
   canbus: boolean,
   bindings: KeyBindings,
   most?: Most,
-  canConfig?: CanConfig
+  canConfig?: CanConfig,
+  /**
+   * Per-stream user-set gains (0.0–1.5), persisted so the user's
+   * preferred music/nav/call balance survives reboots. Written by the
+   * renderer when the knob is turned. Optional to keep older config files
+   * backwards-compatible.
+   */
+  gains?: StreamGains
+}
+
+export interface StreamGains {
+  media: number
+  navigation: number
+  call: number
+  other: number
 }
 
 export interface KeyBindings {
