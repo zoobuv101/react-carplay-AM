@@ -107,13 +107,22 @@ const useCarplayAudio = (
       // fade-in volume ramp — previously our branch order (volumeDuration
       // first) silently swallowed the command and the player stayed
       // tagged as media.
-      if (
-        audio.command === AudioCommand.AudioNaviStart ||
-        audio.command === AudioCommand.AudioMediaStart ||
-        audio.command === AudioCommand.AudioOutputStart
+      //
+      // AudioNaviStart and AudioMediaStart are unambiguous lifecycle
+      // events and are allowed to OVERWRITE any existing tag.
+      // AudioOutputStart just means "start playback on this stream" and
+      // can fire on a nav stream when it resumes after a pause — so
+      // we only use it as a default tag for streams that haven't been
+      // tagged at all (otherwise it would clobber navigation).
+      if (audio.command === AudioCommand.AudioNaviStart) {
+        keyToType.set(audioKey, 'navigation')
+      } else if (audio.command === AudioCommand.AudioMediaStart) {
+        keyToType.set(audioKey, 'media')
+      } else if (
+        audio.command === AudioCommand.AudioOutputStart &&
+        !keyToType.has(audioKey)
       ) {
-        const t = streamTypeFromCommand(audio.command)
-        keyToType.set(audioKey, t)
+        keyToType.set(audioKey, 'media')
       }
 
       // Determine the logical type for this packet now (possibly just
