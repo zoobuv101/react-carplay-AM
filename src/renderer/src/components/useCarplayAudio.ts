@@ -99,9 +99,25 @@ const useCarplayAudio = (
 
   const processAudio = useCallback(
     (audio: AudioData) => {
-      // Determine the logical type for this packet. For first-packet
-      // (before getAudioPlayer has tagged it) fall back to the command.
       const audioKey = createAudioPlayerKey(audio.decodeType, audio.audioType)
+
+      // Lifecycle commands (re)tag the player with its logical stream
+      // type. This MUST run even if audio.volumeDuration is also set,
+      // because CarPlay often sends AudioNaviStart together with a
+      // fade-in volume ramp — previously our branch order (volumeDuration
+      // first) silently swallowed the command and the player stayed
+      // tagged as media.
+      if (
+        audio.command === AudioCommand.AudioNaviStart ||
+        audio.command === AudioCommand.AudioMediaStart ||
+        audio.command === AudioCommand.AudioOutputStart
+      ) {
+        const t = streamTypeFromCommand(audio.command)
+        keyToType.set(audioKey, t)
+      }
+
+      // Determine the logical type for this packet now (possibly just
+      // updated above).
       const type =
         keyToType.get(audioKey) ?? streamTypeFromCommand(audio.command)
 
@@ -110,9 +126,9 @@ const useCarplayAudio = (
       useVolumeStore.getState().bumpActive(type)
 
       if (audio.volumeDuration) {
-        // Protocol-level volume ramp (e.g., nav-start fade-in). Respect it
-        // by scaling against the user's current gain so ducking still
-        // tracks user preferences.
+        // Protocol-level volume ramp (e.g., nav-start fade-in). Scale by
+        // the user's current gain for this stream so the ramp respects
+        // user preferences.
         const player = getAudioPlayer(audio)
         const scale = effectiveGain(type)
         // audio.volumeDuration arrives in ms from the CarPlay protocol;
@@ -123,11 +139,8 @@ const useCarplayAudio = (
           case AudioCommand.AudioNaviStart:
           case AudioCommand.AudioMediaStart:
           case AudioCommand.AudioOutputStart: {
-            // Force the tag to match the current command and apply the
-            // user's stored gain for that type.
-            keyToType.set(audioKey, streamTypeFromCommand(audio.command))
             const p = getAudioPlayer(audio)
-            p.volume(effectiveGain(keyToType.get(audioKey)!), RAMP_SEC)
+            p.volume(effectiveGain(type), RAMP_SEC)
             break
           }
         }
