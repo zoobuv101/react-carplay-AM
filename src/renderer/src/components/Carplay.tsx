@@ -14,7 +14,7 @@ import { ExtraConfig} from "../../../main/Globals";
 import { useCarplayStore, useStatusStore } from "../store/store";
 import { InitEvent } from './worker/render/RenderEvents'
 import { Typography } from "@mui/material";
-import AMLogo from '../assets/AM.png';
+import AMLogo from '../assets/splash.png';
 
 const width = window.innerWidth
 const height = window.innerHeight
@@ -256,10 +256,9 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
           src={AMLogo}
           alt="AM Logo"
           style={{
-            width: '60vw',
-            height: 'auto',
-            maxHeight: '70vh',
-            objectFit: 'contain',
+            width: '100vw',
+            height: '100vh',
+            objectFit: 'cover',
           }}
         />
       </div>
