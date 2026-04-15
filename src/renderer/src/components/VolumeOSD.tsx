@@ -41,7 +41,12 @@ export default function VolumeOSD() {
 
   if (!osd) return null
 
-  const percent = Math.round(osd.rawValue * 100 / MAX_GAIN)
+  // Display percentage conventionally: 100% = unity gain (1.0).
+  // The bar fills at 100% with an additional "boost" zone above, matching
+  // common in-car head-unit behaviour where you can push past the default.
+  const percent = Math.round(osd.rawValue * 100)
+  const barValue = Math.min(100, osd.rawValue * 100) // main fill, capped
+  const boostValue = Math.max(0, (osd.rawValue - 1.0) * 100 / (MAX_GAIN - 1.0)) // 0-100 over the 1.0..1.5 range
   const label = STREAM_LABEL[osd.type]
 
   return (
@@ -87,20 +92,39 @@ export default function VolumeOSD() {
         >
           {label}
         </Typography>
-        <LinearProgress
-          variant="determinate"
-          value={Math.min(100, osd.value * 100)}
-          sx={{
-            height: 6,
-            borderRadius: 3,
-            bgcolor: 'rgba(255,255,255,0.15)',
-            '& .MuiLinearProgress-bar': {
+        <Box sx={{ position: 'relative', height: 6 }}>
+          <LinearProgress
+            variant="determinate"
+            value={barValue}
+            sx={{
+              height: 6,
               borderRadius: 3,
-              bgcolor: osd.muted ? '#888' : '#fff',
-              transition: 'transform 200ms ease',
-            },
-          }}
-        />
+              bgcolor: 'rgba(255,255,255,0.15)',
+              '& .MuiLinearProgress-bar': {
+                borderRadius: 3,
+                bgcolor: osd.muted ? '#888' : '#fff',
+                transition: 'transform 200ms ease',
+              },
+            }}
+          />
+          {boostValue > 0 && (
+            <LinearProgress
+              variant="determinate"
+              value={boostValue}
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                height: 6,
+                borderRadius: 3,
+                bgcolor: 'transparent',
+                '& .MuiLinearProgress-bar': {
+                  borderRadius: 3,
+                  bgcolor: '#ff9800', // amber for boost zone above 100%
+                },
+              }}
+            />
+          )}
+        </Box>
       </Box>
       <Typography
         sx={{

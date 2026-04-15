@@ -48,7 +48,9 @@ interface VolumeStore {
   gains: Record<StreamType, number>
   muted: Record<StreamType, boolean>
   activeStream: StreamType
-  activeSince: number
+  // Per-type last-seen timestamp so that nav packets keep nav selected as
+  // the active stream even while music packets continue to flow.
+  lastSeen: Record<StreamType, number>
   osd: OsdState | null
   _seq: number
 
@@ -61,13 +63,34 @@ interface VolumeStore {
   hideOsd: () => void
 }
 
+const PRIORITY: Record<StreamType, number> = {
+  call: 3,
+  navigation: 2,
+  media: 1,
+  other: 0,
+}
+
+const computeActive = (lastSeen: Record<StreamType, number>): StreamType => {
+  const now = Date.now()
+  let best: StreamType = 'media'
+  let bestP = -1
+  for (const t of Object.keys(PRIORITY) as StreamType[]) {
+    const recent = now - lastSeen[t] < ACTIVE_STALE_MS
+    if (recent && PRIORITY[t] > bestP) {
+      best = t
+      bestP = PRIORITY[t]
+    }
+  }
+  return best
+}
+
 const clamp = (v: number) => Math.max(MIN_GAIN, Math.min(MAX_GAIN, v))
 
 export const useVolumeStore = create<VolumeStore>()((set, get) => ({
   gains: { ...DEFAULT_GAINS },
   muted: { media: false, navigation: false, call: false, other: false },
   activeStream: 'media',
-  activeSince: 0,
+  lastSeen: { media: 0, navigation: 0, call: 0, other: 0 },
   osd: null,
   _seq: 0,
 
@@ -87,18 +110,19 @@ export const useVolumeStore = create<VolumeStore>()((set, get) => ({
   },
 
   bumpActive: (t) => {
+    // Update last-seen for the type that produced the packet, then
+    // recompute which stream currently wins (highest-priority type with
+    // a packet in the last ACTIVE_STALE_MS). This is the right model:
+    // music and nav can flow at the same time, but nav should persist as
+    // the "current" stream until it actually stops speaking.
     const now = Date.now()
     const s = get()
-    // Only change activeStream if the current one has gone stale, OR if
-    // priority dictates (call > navigation > media > other).
-    const stale = now - s.activeSince > ACTIVE_STALE_MS
-    const priority: Record<StreamType, number> = {
-      call: 3, navigation: 2, media: 1, other: 0,
-    }
-    if (stale || priority[t] >= priority[s.activeStream]) {
-      set({ activeStream: t, activeSince: now })
+    const nextLastSeen = { ...s.lastSeen, [t]: now }
+    const nextActive = computeActive(nextLastSeen)
+    if (nextActive !== s.activeStream) {
+      set({ lastSeen: nextLastSeen, activeStream: nextActive })
     } else {
-      set({ activeSince: now })
+      set({ lastSeen: nextLastSeen })
     }
   },
 

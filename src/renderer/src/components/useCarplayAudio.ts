@@ -51,9 +51,16 @@ const useCarplayAudio = (
   const applyGainToType = useCallback(
     (t: StreamType) => {
       const gain = effectiveGain(t)
+      let applied = 0
       audioPlayers.forEach((p, key) => {
-        if (keyToType.get(key) === t) p.volume(gain, RAMP_MS)
+        if (keyToType.get(key) === t) {
+          p.volume(gain, RAMP_MS)
+          applied++
+        }
       })
+      console.log(
+        `[volume] applyGainToType type=${t} gain=${gain.toFixed(2)} applied=${applied} players=${audioPlayers.size}`,
+      )
     },
     [audioPlayers, keyToType],
   )
@@ -69,7 +76,11 @@ const useCarplayAudio = (
       audioPlayers.set(audioKey, player)
       const type = streamTypeFromCommand(audio.command)
       keyToType.set(audioKey, type)
-      player.volume(effectiveGain(type))
+      const initialGain = effectiveGain(type)
+      player.volume(initialGain)
+      console.log(
+        `[volume] new player key=${audioKey} type=${type} initialGain=${initialGain.toFixed(2)} command=${audio.command}`,
+      )
       player.start()
       worker.postMessage({
         type: 'audioPlayer',
