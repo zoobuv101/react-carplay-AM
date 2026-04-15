@@ -1,11 +1,12 @@
 import { create } from 'zustand'
-import { ExtraConfig } from "../../../main/Globals";
+import { ExtraConfig, StreamGains } from "../../../main/Globals";
 import { io } from 'socket.io-client'
 import { Stream } from "socketmost/dist/modules/Messages";
 
 interface CarplayStore {
   settings: null | ExtraConfig,
   saveSettings: (settings: ExtraConfig) => void
+  saveGains: (gains: StreamGains) => void
   getSettings: () => void
   stream: (stream: Stream) => void
 }
@@ -23,6 +24,11 @@ export const useCarplayStore = create<CarplayStore>()((set) =>({
   saveSettings: (settings) => {
     set(() => ({settings: settings}))
     socket.emit('saveSettings', settings)
+  },
+  saveGains: (gains) => {
+    // Hot-path: persist gains without relaunching the app. The main
+    // process writes only the gains block to config.json.
+    socket.emit('saveGains', gains)
   },
   getSettings: () => {
     socket.emit('getSettings')

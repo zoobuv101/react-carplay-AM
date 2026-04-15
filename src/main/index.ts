@@ -65,7 +65,7 @@ fs.exists(configPath, (exists) => {
       config = JSON.parse(fs.readFileSync(configPath).toString())
       console.log("config created and read")
     }
-    socket = new Socket(config!, saveSettings)
+    socket = new Socket(config!, saveSettings, saveGains)
     // comment below if statement to allow running on non linux devices
     if(config!.canbus) {
       console.log("Configuring can", config!.canConfig)
@@ -231,6 +231,19 @@ const saveSettings = (settings: ExtraConfig) => {
   fs.writeFileSync(configPath, JSON.stringify(settings))
   app.relaunch()
   app.exit()
+}
+
+// Hot-path persistence for per-stream gains: write only the gains block
+// without relaunching the app. Called every time the user turns the
+// volume knob, so must be cheap and must NOT restart the app.
+const saveGains = (gains: import('./Globals').StreamGains) => {
+  if (!config) return
+  config.gains = gains
+  try {
+    fs.writeFileSync(configPath, JSON.stringify(config))
+  } catch (err) {
+    console.error('failed to save gains', err)
+  }
 }
 
 // const startMostStream = (_: IpcMainEvent, most: Stream) => {

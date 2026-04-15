@@ -7,8 +7,10 @@ import Home from "./components/Home";
 import Nav from "./components/Nav";
 import Carplay from './components/Carplay'
 import Camera from './components/Camera'
+import VolumeOSD from './components/VolumeOSD'
 import { Box, Modal } from '@mui/material'
 import { useCarplayStore, useStatusStore } from "./store/store";
+import { useVolumeStore, STEP } from "./store/volumeStore";
 
 // rm -rf node_modules/.vite; npm run dev
 
@@ -39,8 +41,61 @@ function App() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [settings]);
 
+  // Load persisted per-stream gains into the volume store whenever
+  // settings come back from the main process.
+  useEffect(() => {
+    const persisted = (settings as any)?.gains
+    if (persisted) useVolumeStore.getState().loadGains(persisted)
+  }, [settings])
+
+  // Whenever the user adjusts volume, persist the gains block to config
+  // without relaunching the app (unlike saveSettings which triggers a
+  // full Electron restart to reload bindings). Debounced so fast knob
+  // turns write only once.
+  useEffect(() => {
+    let prev = useVolumeStore.getState().gains
+    let debounceT: number | undefined
+    const unsub = useVolumeStore.subscribe((s) => {
+      if (
+        s.gains.media === prev.media &&
+        s.gains.navigation === prev.navigation &&
+        s.gains.call === prev.call &&
+        s.gains.other === prev.other
+      ) return
+      prev = s.gains
+      if (debounceT !== undefined) window.clearTimeout(debounceT)
+      debounceT = window.setTimeout(() => {
+        useCarplayStore.getState().saveGains({ ...s.gains })
+      }, 300)
+    })
+    return () => {
+      unsub()
+      if (debounceT !== undefined) window.clearTimeout(debounceT)
+    }
+  }, [])
+
 
   const onKeyDown = (event: KeyboardEvent) => {
+    // Intercept volume keys before the CarPlay command bindings — these
+    // map to our local per-stream mixer, not to the CarPlay protocol
+    // (which has no volume commands in node-carplay v4.0.5 anyway).
+    const vol = useVolumeStore.getState()
+    if (event.code === 'AudioVolumeUp') {
+      vol.adjustActive(+STEP)
+      event.preventDefault()
+      return
+    }
+    if (event.code === 'AudioVolumeDown') {
+      vol.adjustActive(-STEP)
+      event.preventDefault()
+      return
+    }
+    if (event.code === 'AudioVolumeMute') {
+      vol.toggleMuteActive()
+      event.preventDefault()
+      return
+    }
+
     if(Object.values(settings!.bindings).includes(event.code)) {
       let action = Object.keys(settings!.bindings).find(key =>
         settings!.bindings[key] === event.code
@@ -84,6 +139,7 @@ function App() {
             <Camera settings={settings}/>
           </Box>
         </Modal>
+        <VolumeOSD />
       </div>
     </Router>
 
