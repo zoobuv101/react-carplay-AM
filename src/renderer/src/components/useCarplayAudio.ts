@@ -15,7 +15,9 @@ import {
 } from '../store/volumeStore'
 
 // Reasonable short ramp so volume changes never click/pop.
-const RAMP_MS = 200
+// PcmPlayer.volume() passes this to WebAudio AudioParam.setTargetAtTime
+// which takes the ramp duration in **seconds**, not milliseconds.
+const RAMP_SEC = 0.2
 
 /**
  * Infer logical stream type from the AudioCommand that provisioned this
@@ -54,7 +56,7 @@ const useCarplayAudio = (
       let applied = 0
       audioPlayers.forEach((p, key) => {
         if (keyToType.get(key) === t) {
-          p.volume(gain, RAMP_MS)
+          p.volume(gain, RAMP_SEC)
           applied++
         }
       })
@@ -113,7 +115,9 @@ const useCarplayAudio = (
         // tracks user preferences.
         const player = getAudioPlayer(audio)
         const scale = effectiveGain(type)
-        player.volume(audio.volume * scale, audio.volumeDuration)
+        // audio.volumeDuration arrives in ms from the CarPlay protocol;
+        // PcmPlayer.volume takes seconds for its Web Audio ramp.
+        player.volume(audio.volume * scale, audio.volumeDuration / 1000)
       } else if (audio.command) {
         switch (audio.command) {
           case AudioCommand.AudioNaviStart:
@@ -123,7 +127,7 @@ const useCarplayAudio = (
             // user's stored gain for that type.
             keyToType.set(audioKey, streamTypeFromCommand(audio.command))
             const p = getAudioPlayer(audio)
-            p.volume(effectiveGain(keyToType.get(audioKey)!), RAMP_MS)
+            p.volume(effectiveGain(keyToType.get(audioKey)!), RAMP_SEC)
             break
           }
         }
