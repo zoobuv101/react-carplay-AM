@@ -33,9 +33,9 @@ export default function BootCover() {
         inset: 0,
         zIndex: 9000,
         bgcolor: '#000',
-        opacity: isPlugged ? 0 : 1,
+        opacity: videoReady ? 0 : 1,
         transition: 'opacity 500ms ease',
-        pointerEvents: isPlugged ? 'none' : 'auto',
+        pointerEvents: videoReady ? 'none' : 'auto',
       }}
     >
       <Box
