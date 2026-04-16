@@ -9,7 +9,7 @@ import { useStatusStore } from '../store/store'
 // black beneath shows through strongly — peak minimum is 0.82 opacity.
 const breathe = keyframes`
   0%, 100% { opacity: 1; }
-  50%      { opacity: 0.82; }
+  50%      { opacity: 0.60; }
 `
 
 /**
@@ -48,7 +48,7 @@ export default function BootCover() {
           height: '100vh',
           objectFit: 'cover',
           userSelect: 'none',
-          animation: `${breathe} 3s ease-in-out infinite`,
+          animation: `${breathe} 2s ease-in-out infinite`,
         }}
       />
     </Box>
