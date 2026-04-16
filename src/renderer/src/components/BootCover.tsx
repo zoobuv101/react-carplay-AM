@@ -1,7 +1,16 @@
 import React from 'react'
 import { Box } from '@mui/material'
+import { keyframes } from '@mui/system'
 import AMSplash from '../assets/splash.png'
 import { useStatusStore } from '../store/store'
+
+// Subtle breathing animation so the user reads the logo as "alive" while
+// the background is still booting. Never goes so transparent that the
+// black beneath shows through strongly — peak minimum is 0.82 opacity.
+const breathe = keyframes`
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.82; }
+`
 
 /**
  * Root-level boot cover. Renders the AM splash full-screen on a black
@@ -39,6 +48,7 @@ export default function BootCover() {
           height: '100vh',
           objectFit: 'cover',
           userSelect: 'none',
+          animation: `${breathe} 3s ease-in-out infinite`,
         }}
       />
     </Box>
