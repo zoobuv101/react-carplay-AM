@@ -59,7 +59,7 @@ export class RenderWorker {
       this.pendingFrame = null
       if (!this.firstFrameSignaled) {
         this.firstFrameSignaled = true
-        scope.postMessage({ type: 'firstFrame' })
+        console.log("[firstFrame] worker emit"); scope.postMessage({ type: "firstFrame" })
       }
     }
   }

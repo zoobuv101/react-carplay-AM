@@ -60,6 +60,8 @@ interface VolumeStore {
   adjustActive: (delta: number) => void
   toggleMuteActive: () => void
   showOsd: (t: StreamType) => void
+  videoReady: boolean
+  setVideoReady: (v: boolean) => void
   hideOsd: () => void
 }
 
@@ -92,6 +94,7 @@ export const useVolumeStore = create<VolumeStore>()((set, get) => ({
   activeStream: 'media',
   lastSeen: { media: 0, navigation: 0, call: 0, other: 0 },
   osd: null,
+  videoReady: false,
   _seq: 0,
 
   setGainInternal: (t, v) => {
@@ -185,6 +188,7 @@ export const useVolumeStore = create<VolumeStore>()((set, get) => ({
     })
   },
 
+  setVideoReady: (v) => set({ videoReady: v }),
   hideOsd: () => set({ osd: null }),
 }))
 

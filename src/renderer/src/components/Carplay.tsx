@@ -95,7 +95,8 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
 
   // Keep logo on screen briefly after 'plugged' so we don't show a black gap
   // while the first video frame is still being decoded.
-  const [videoReady, setVideoReady] = React.useState(false)
+  const videoReady = useVolumeStore((st) => st.videoReady)
+  const setVideoReady = useVolumeStore((st) => st.setVideoReady)
   React.useEffect(() => {
     if (!isPlugged) {
       setVideoReady(false)
@@ -112,7 +113,7 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
   React.useEffect(() => {
     if (!renderWorker) return
     const handler = (ev: MessageEvent) => {
-      if (ev?.data?.type === 'firstFrame') setVideoReady(true)
+      if (ev?.data?.type === 'firstFrame') { console.log('[firstFrame] main received'); setVideoReady(true) }
     }
     renderWorker.addEventListener('message', handler)
     return () => renderWorker.removeEventListener('message', handler)
