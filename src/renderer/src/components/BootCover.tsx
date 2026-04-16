@@ -5,8 +5,8 @@ import AMSplash from '../assets/splash.png'
 import { useStatusStore } from '../store/store'
 
 // Subtle breathing animation so the user reads the logo as "alive" while
-// the background is still booting. Never goes so transparent that the
-// black beneath shows through strongly — peak minimum is 0.82 opacity.
+// the background is still booting. 0.60 min opacity gives clear motion
+// without the black beneath showing through too strongly.
 const breathe = keyframes`
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.60; }
@@ -14,15 +14,15 @@ const breathe = keyframes`
 
 /**
  * Root-level boot cover. Renders the AM splash full-screen on a black
- * background from the very first React frame, so Nav and other early
- * mounted components are never visible standalone before Carplay's own
- * BootScreen overlay attaches.
+ * background from the very first React frame so Nav and other early
+ * mounted components never appear standalone before Carplay's inner
+ * BootScreen attaches.
  *
- * Uses isPlugged (already exposed via useStatusStore) as the hide signal.
- * Carplay's inner BootScreen still uses its more precise local
- * videoReady (first-frame from Render.worker) to fade out — this outer
- * cover hides slightly earlier (on isPlugged) so the user gets the
- * actual CarPlay UI revealed in one fade rather than two.
+ * Hides on useStatusStore.videoReady — set by Carplay when the render
+ * worker confirms the first CarPlay video frame has been drawn. Both
+ * this outer cover and Carplay's inner overlay fade together so the
+ * breathing animation runs uninterrupted right up to the moment the
+ * CarPlay UI is revealed.
  */
 export default function BootCover() {
   const videoReady = useStatusStore((s) => s.videoReady)
