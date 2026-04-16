@@ -14,6 +14,13 @@ import { ExtraConfig} from "../../../main/Globals";
 import { useCarplayStore, useStatusStore } from "../store/store";
 import { InitEvent } from './worker/render/RenderEvents'
 import { Typography } from "@mui/material";
+import { keyframes } from '@mui/system';
+
+const breathe = keyframes`
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.60; }
+`;
+
 import AMLogo from '../assets/splash.png';
 
 const width = window.innerWidth
@@ -273,6 +280,7 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
             width: '100vw',
             height: '100vh',
             objectFit: 'cover',
+            animation: `${breathe} 2s ease-in-out infinite`,
           }}
         />
       </div>
