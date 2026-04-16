@@ -95,8 +95,7 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
 
   // Keep logo on screen briefly after 'plugged' so we don't show a black gap
   // while the first video frame is still being decoded.
-  const videoReady = useVolumeStore((st) => st.videoReady)
-  const setVideoReady = useVolumeStore((st) => st.setVideoReady)
+  const [videoReady, setVideoReady] = React.useState(false)
   React.useEffect(() => {
     if (!isPlugged) {
       setVideoReady(false)
