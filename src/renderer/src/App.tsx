@@ -8,6 +8,7 @@ import Nav from "./components/Nav";
 import Carplay from './components/Carplay'
 import Camera from './components/Camera'
 import VolumeOSD from './components/VolumeOSD'
+import BootCover from './components/BootCover'
 import { Box, Modal } from '@mui/material'
 import { useCarplayStore, useStatusStore } from "./store/store";
 import { useVolumeStore, STEP } from "./store/volumeStore";
@@ -139,6 +140,10 @@ function App() {
             <Camera settings={settings}/>
           </Box>
         </Modal>
+        {/* Root-level boot cover — paints AM full-screen from frame 1 so
+            Nav row never flashes standalone before Carplay's BootScreen
+            mounts. Fades out on videoReady (first CarPlay frame). */}
+        <BootCover />
         <VolumeOSD />
       </div>
     </Router>
