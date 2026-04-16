@@ -51,10 +51,16 @@ export class RenderWorker {
     this.pendingFrame = frame
   }
 
+  private firstFrameSignaled = false
+
   private renderAnimationFrame = () => {
     if (this.pendingFrame) {
       this.renderer?.draw(this.pendingFrame)
       this.pendingFrame = null
+      if (!this.firstFrameSignaled) {
+        this.firstFrameSignaled = true
+        scope.postMessage({ type: 'firstFrame' })
+      }
     }
   }
 

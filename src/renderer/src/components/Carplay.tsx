@@ -97,12 +97,26 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
   // while the first video frame is still being decoded.
   const [videoReady, setVideoReady] = React.useState(false)
   React.useEffect(() => {
-    if (isPlugged) {
-      const t = setTimeout(() => setVideoReady(true), 12000)
-      return () => clearTimeout(t)
+    if (!isPlugged) {
+      setVideoReady(false)
+      return
     }
-    setVideoReady(false)
+    // Belt-and-braces hard timeout: never leave logo overlay up >15 s after
+    // plugged. Render.worker should signal earlier; this is just a safety net.
+    const t = setTimeout(() => setVideoReady(true), 15000)
+    return () => clearTimeout(t)
   }, [isPlugged])
+
+  // Listen for first-painted-frame signal from Render.worker so we hide
+  // the AM logo precisely when CarPlay video is actually visible.
+  React.useEffect(() => {
+    if (!renderWorker) return
+    const handler = (ev: MessageEvent) => {
+      if (ev?.data?.type === 'firstFrame') setVideoReady(true)
+    }
+    renderWorker.addEventListener('message', handler)
+    return () => renderWorker.removeEventListener('message', handler)
+  }, [renderWorker])
 
   const { processAudio, getAudioPlayer, startRecording, stopRecording } =
     useCarplayAudio(carplayWorker, micChannel.port2)
