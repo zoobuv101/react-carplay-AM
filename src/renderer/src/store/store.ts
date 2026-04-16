@@ -15,7 +15,9 @@ interface StatusStore {
   reverse: boolean,
   lights: boolean,
   isPlugged: boolean,
+  videoReady: boolean,
   setPlugged: (plugged: boolean) => void,
+  setVideoReady: (v: boolean) => void,
   setReverse: (reverse: boolean) => void
 }
 
@@ -42,8 +44,12 @@ export const useStatusStore = create<StatusStore>()((set) => ({
   reverse: false,
   lights: false,
   isPlugged: false,
+  videoReady: false,
   setPlugged: (plugged) => {
     set(() => ({isPlugged: plugged}))
+  },
+  setVideoReady: (v) => {
+    set(() => ({videoReady: v}))
   },
   setReverse: (reverse) => {
     set(() => ({reverse: reverse}))

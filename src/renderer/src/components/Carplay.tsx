@@ -42,7 +42,7 @@ interface CarplayProps {
 }
 
 function Carplay({ receivingVideo, setReceivingVideo, settings, command, commandCounter }: CarplayProps) {
-  const [isPlugged, setPlugged] = useStatusStore(state => [state.isPlugged, state.setPlugged])
+  const [isPlugged, setPlugged, setStoreVideoReady] = useStatusStore(state => [state.isPlugged, state.setPlugged, state.setVideoReady])
   const [deviceFound, setDeviceFound] = useState(false)
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -106,6 +106,7 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
   React.useEffect(() => {
     if (!isPlugged) {
       setVideoReady(false)
+      setStoreVideoReady(false)
       return
     }
     // Belt-and-braces hard timeout: never leave logo overlay up >15 s after
@@ -119,7 +120,7 @@ function Carplay({ receivingVideo, setReceivingVideo, settings, command, command
   React.useEffect(() => {
     if (!renderWorker) return
     const handler = (ev: MessageEvent) => {
-      if (ev?.data?.type === 'firstFrame') { console.log('[firstFrame] main received'); setVideoReady(true) }
+      if (ev?.data?.type === 'firstFrame') { console.log('[firstFrame] main received'); setVideoReady(true); setStoreVideoReady(true) }
     }
     renderWorker.addEventListener('message', handler)
     return () => renderWorker.removeEventListener('message', handler)

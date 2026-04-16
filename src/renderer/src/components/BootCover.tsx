@@ -25,7 +25,7 @@ const breathe = keyframes`
  * actual CarPlay UI revealed in one fade rather than two.
  */
 export default function BootCover() {
-  const isPlugged = useStatusStore((s) => s.isPlugged)
+  const videoReady = useStatusStore((s) => s.videoReady)
   return (
     <Box
       sx={{
