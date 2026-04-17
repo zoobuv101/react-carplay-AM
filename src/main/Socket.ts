@@ -56,6 +56,10 @@ export class Socket extends EventEmitter {
       socket.on('shutdown', () => {
         this.io.emit('shutdown')
       })
+
+      socket.on('cancelShutdown', () => {
+        this.io.emit('cancelShutdown')
+      })
     })
 
     this.io.listen(4000)

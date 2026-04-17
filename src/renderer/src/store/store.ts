@@ -74,6 +74,11 @@ socket.on('shutdown', () => {
   useStatusStore.setState(() => ({videoReady: false, isPlugged: false}))
 })
 
+socket.on('cancelShutdown', () => {
+  console.log("shutdown cancelled — restoring CarPlay")
+  useStatusStore.setState(() => ({videoReady: true, isPlugged: true}))
+})
+
 
 
 
