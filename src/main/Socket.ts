@@ -52,6 +52,10 @@ export class Socket extends EventEmitter {
       socket.on(MessageNames.Stream, (stream: Stream) => {
         this.emit(MessageNames.Stream, stream)
       })
+
+      socket.on('shutdown', () => {
+        this.io.emit('shutdown')
+      })
     })
 
     this.io.listen(4000)

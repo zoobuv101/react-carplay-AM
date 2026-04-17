@@ -69,6 +69,11 @@ socket.on('reverse', (reverse) => {
   useStatusStore.setState(() => ({reverse: reverse}))
 })
 
+socket.on('shutdown', () => {
+  console.log("shutdown signal received — re-showing BootCover")
+  useStatusStore.setState(() => ({videoReady: false, isPlugged: false}))
+})
+
 
 
 
